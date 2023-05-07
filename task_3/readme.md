@@ -5,9 +5,9 @@
 - Выберите алгоритм для реализации. Например: Token Bucket
 
 Если хотите больше челленжа, то реализуйте лимитер на ином алгоритме:
-- Token Bucket
-- Leaky Bucket
-- Fixed Window
-- Sliding Window
+- [x] [Token Bucket](./tokenBucket/main.go)
+- [x] [Leaky Bucket](./leakyBucket/main.go)
+- [x] [Fixed Window](./fixedWindow/main.go)
+- [ ] Sliding Window
 
 Несколько типов алгоритмов: https://betterprogramming.pub/4-rate-limit-algorithms-every-developer-should-know-7472cb482f48
