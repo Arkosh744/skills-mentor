@@ -26,7 +26,7 @@ func main() {
 		}
 	}()
 
-	rLimiter := newRateLimiter(timeUnit, timeDuration, rate)
+	rLimiter := newFixedWindow(timeUnit, timeDuration, rate)
 
 	// store requests in order and then execute them
 	reqCh := make(chan func())
@@ -66,7 +66,7 @@ type rateLimiter struct {
 	done        chan struct{}
 }
 
-func newRateLimiter(unit time.Duration, duration int, rate int64) *rateLimiter {
+func newFixedWindow(unit time.Duration, duration int, rate int64) *rateLimiter {
 	windowSize := time.Duration(duration) * unit
 	rl := &rateLimiter{
 		rate:       rate,

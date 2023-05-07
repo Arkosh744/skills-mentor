@@ -25,7 +25,7 @@ func main() {
 		}
 	}()
 
-	rLimiter := newRateLimiter(timeUnit, timeDuration, rate)
+	rLimiter := newLeakyBucket(timeUnit, timeDuration, rate)
 
 	// store requests in order and then execute them
 	reqCh := make(chan func())
@@ -62,7 +62,7 @@ type rateLimiter struct {
 	ticker *time.Ticker
 }
 
-func newRateLimiter(unit time.Duration, duration int, rate int) *rateLimiter {
+func newLeakyBucket(unit time.Duration, duration int, rate int) *rateLimiter {
 	bucket := make(chan struct{}, rate)
 	rl := &rateLimiter{rate: rate, bucket: bucket}
 	rl.refill()

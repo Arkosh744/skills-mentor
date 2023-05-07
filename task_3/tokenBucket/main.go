@@ -26,7 +26,7 @@ func main() {
 		}
 	}()
 
-	rLimiter := newRateLimiter(timeUnit, timeDuration, rate)
+	rLimiter := newTokenBucket(timeUnit, timeDuration, rate)
 
 	// store requests in order and then execute them
 	reqCh := make(chan func())
@@ -65,7 +65,7 @@ type rateLimiter struct {
 	resetChannel chan struct{}
 }
 
-func newRateLimiter(unit time.Duration, duration int, rate int64) *rateLimiter {
+func newTokenBucket(unit time.Duration, duration int, rate int64) *rateLimiter {
 	resetChannel := make(chan struct{})
 	resetTimer := time.NewTicker(unit * time.Duration(duration))
 
