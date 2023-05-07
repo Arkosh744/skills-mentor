@@ -11,9 +11,9 @@ import (
 const (
 	count = 100
 
-	timeUnit           = time.Second
-	timeDuration       = 5
-	rate         int64 = 10
+	timeUnit     = time.Second
+	timeDuration = 5
+	rate         = 2
 )
 
 func main() {
@@ -58,36 +58,46 @@ func RPCCall() int {
 }
 
 type rateLimiter struct {
-	rate         int64
-	counter      int64
-	lock         sync.Mutex
-	resetTicker  *time.Ticker
-	resetChannel chan struct{}
+	rate        int64
+	counter     int64
+	lock        sync.Mutex
+	resetWindow time.Time
+	windowSize  time.Duration
+	done        chan struct{}
 }
 
 func newRateLimiter(unit time.Duration, duration int, rate int64) *rateLimiter {
-	resetChannel := make(chan struct{})
-	resetTimer := time.NewTicker(unit * time.Duration(duration))
+	windowSize := time.Duration(duration) * unit
+	rl := &rateLimiter{
+		rate:       rate,
+		windowSize: windowSize,
+		done:       make(chan struct{}),
+	}
 
 	go func() {
-		for {
-			<-resetTimer.C
-			resetChannel <- struct{}{}
-			resetTimer.Reset(unit * time.Duration(duration))
+		ticker := time.NewTicker(windowSize)
+		for range ticker.C {
+			rl.lock.Lock()
+			atomic.StoreInt64(&rl.counter, 0)
+			rl.lock.Unlock()
+
+			close(rl.done)
+			rl.done = make(chan struct{})
 		}
 	}()
 
-	return &rateLimiter{rate: rate, resetTicker: resetTimer, resetChannel: resetChannel}
+	return rl
 }
 
 func (rl *rateLimiter) wait() {
 	rl.lock.Lock()
-	defer rl.lock.Unlock()
 
 	if rl.counter >= rl.rate {
-		<-rl.resetChannel
-		atomic.StoreInt64(&rl.counter, 0)
+		rl.lock.Unlock()
+		<-rl.done
+		rl.lock.Lock()
 	}
 
 	atomic.AddInt64(&rl.counter, 1)
+	rl.lock.Unlock()
 }

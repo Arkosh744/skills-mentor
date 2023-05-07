@@ -69,7 +69,8 @@ func newRateLimiter(unit time.Duration, duration int, rate int) *rateLimiter {
 
 	go func() {
 		ticker := time.NewTicker(time.Duration(duration) * unit)
-		for range ticker.C {
+		for {
+			<-ticker.C
 			rl.refill()
 		}
 	}()
